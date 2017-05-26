@@ -41,7 +41,7 @@
                     "iconClass": "icon-infinispan",
                     "openshift.io/display-name": "Infinispan 8",
                     "tags": "java,database,datagrid,jboss",
-                    "version": "9.0"
+                    "version": "8.2"
                 },
                 "from": {
                     "kind": "DockerImage",
