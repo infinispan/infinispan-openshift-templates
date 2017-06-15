@@ -1,0 +1,99 @@
+Infinispan OpenShift Templates
+==============================
+
+This repository contains OpenShift templates for Infinispan.
+The templates are in sync with [OpenShift Library](https://github.com/openshift/library).
+
+What's inside?
+--------------
+
+The repository has the following structure
+
+.Directory structure
+```
++- Root
+    +- configurations - Configuration files for persistent image
+    +- imagestreams - Image Streams for Infinispan 8 and 9
+    +- templates - Infinispan ephemeral and persistent template
+```
+
+Infinispan ephemeral template creates a cluster of 3 nodes without any persistence. This template shall be used
+for creating ad-hoc applications or when persistence is not the case.
+
+Infinispan persistent templates creates a cluster of 3 nodes based on [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/).
+All data is stored inside `/opt/jboss/infinispan-server/standalone/data` directory which is persistent. This allows you to scale down/up
+the cluster without losing data. Here's a simple example:
+
+```
+# Create an app
+make test-persistent
+
+# Put something into the cluster
+curl -v -u user:changeme -d test -H "Accept: text/plain" http://172.17.0.2:8080/rest/default/2\
+
+# Scale it down and up again
+oc scale statefulset infinispan-persistent-app --replicas=0
+oc scale statefulset infinispan-persistent-app --replicas=3
+
+# It's still there!
+curl -v -u user:changeme -H "Accept: text/plain" http://172.17.0.2:8080/rest/default/2\
+```
+
+
+How to install templates?
+-------------------------
+
+Both Templates and Image Streams need to be installed in OpenShift. If you'd like to make them accessible for all users
+(regardless to the Project/Namespace), you need to switch to Project `openshift` before proceeding.
+
+The easiest way to install the templates is to use Make:
+
+.Installing templates using Make
+```
+make install-templates
+```
+
+Alternatively you can use `oc` client:
+
+.Installing templates using `oc` client
+```
+oc create -f imagestreams/infinispan-centos7.json
+oc create -f templates/infinispan-persistent.json
+oc create -f templates/infinispan-ephemeral.json
+```
+
+After all templates are installed you can create a new application by using either `oc process` command or
+OpenShift web console. For more information please refer to [OpenShift templates manual](https://docs.openshift.org/latest/dev_guide/templates.html).
+
+How to run applications based on templates?
+-------------------------------------------
+
+The easiest way to get Infinispan cluster running is to use make:
+
+.Running templates using Make
+```
+make test-ephemeral
+make test-persistent
+```
+
+Alternatively you can use `oc` command:
+
+.Running templates using `oc` command
+```
+oc process infinispan-persistent | oc create -f -
+oc process infinispan-ephemeral | oc create -f -
+```
+
+Maintenance guide
+-----------------
+
+We haven't figured out what's the best way to store configuration. Currently we use ConfigMap for this.
+
+The procedure for updating configuration looks like the following:
+
+1. Update `configurations/cloud-persistent.xml` file
+2. Run `make export-configuration-for-template`
+3. Copy `"cloud-persistent.xml": "\u003c?xml ve....`
+4. Update the template
+
+If you have better ideas how we could do that, please open us an issue or even better, donate us with a Pull Request!
