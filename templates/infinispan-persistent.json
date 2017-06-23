@@ -6,7 +6,7 @@
   },
   "metadata": {
     "annotations": {
-      "description": "Infinispan 9.1 (Persistent)",
+      "description": "Infinispan 9 (Persistent)",
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
       "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
@@ -302,7 +302,7 @@
       "description": "Infinispan image.",
       "name": "IMAGE",
       "required": true,
-      "value": "jboss/infinispan-server:9.1.0.Alpha1"
+      "value": "jboss/infinispan-server:9.0.3.Final"
     }
   ]
 }
