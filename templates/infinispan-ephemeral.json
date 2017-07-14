@@ -10,7 +10,7 @@
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
       "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
-      "template.openshift.io/long-description": "Infinispan is a high performance, scalable, key/value data grid solution.",
+      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) without persistence (in other words your data will be lost upon restart).",
       "template.openshift.io/provider-display-name": "Red Hat, Inc.",
       "template.openshift.io/support-url": "http://infinispan.org"
     },
@@ -42,6 +42,19 @@
       ],
       "roleRef": {
         "name": "view"
+      }
+    },
+    {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}-jolokia",
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        }
+      },
+      "data": {
+        "agent.conf": "jolokia=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,useSslClientAuthentication=true,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false"
       }
     },
     {
@@ -129,7 +142,9 @@
               {
                 "args": [
                   "cloud.xml",
-                  "-Djboss.default.jgroups.stack=kubernetes"
+                  "-Djboss.default.jgroups.stack=kubernetes",
+                  "--jmx",
+                  "/usr/share/jolokia/agent.conf"
                 ],
                 "env": [
                   {
@@ -187,12 +202,31 @@
                     "containerPort": 11222,
                     "name": "hotrod",
                     "protocol": "TCP"
+                  },
+                  {
+                    "containerPort": 8778,
+                    "name": "jolokia",
+                    "protocol": "TCP"
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "${APPLICATION_NAME}-jolokia",
+                    "mountPath": "/usr/share/jolokia"
                   }
                 ]
               }
             ],
             "terminationGracePeriodSeconds": 120,
-            "serviceAccountName": "${APPLICATION_NAME}"
+            "serviceAccountName": "${APPLICATION_NAME}",
+            "volumes": [
+              {
+                "name": "${APPLICATION_NAME}-jolokia",
+                "configMap": {
+                  "name": "${APPLICATION_NAME}-jolokia"
+                }
+              }
+            ]
           }
         },
         "triggers": [
