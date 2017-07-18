@@ -302,7 +302,7 @@
       "description": "Infinispan image.",
       "name": "IMAGE",
       "required": true,
-      "value": "jboss/infinispan-server:9.0.3.Final"
+      "value": "slaskawi/infinispan-monitoring-demo"
     }
   ]
 }
