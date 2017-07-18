@@ -45,6 +45,23 @@
       }
     },
     {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "annotations": {
+          "template.openshift.io/expose-infinispan.client.hotrod.auth_username": "{.data['application-user']}",
+          "template.openshift.io/expose-infinispan.client.hotrod.auth_password": "{.data['application-password']}"
+        }
+      },
+      "stringData" : {
+        "application-user": "${APPLICATION_USER}",
+        "application-password": "${APPLICATION_PASSWORD}",
+        "management-user": "${MANAGEMENT_USER}",
+        "management-password": "${MANAGEMENT_PASSWORD}"
+      }
+    },
+    {
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
@@ -104,7 +121,8 @@
       "kind": "Service",
       "metadata": {
         "annotations": {
-          "description": "Hot Rod's port."
+          "description": "Hot Rod's port.",
+          "template.openshift.io/expose-infinispan.client.hotrod.server_list": "{.spec.clusterIP}:{.spec.ports[0].port}"
         },
         "labels": {
           "application": "${APPLICATION_NAME}"
@@ -209,6 +227,22 @@
                         "fieldPath": "metadata.name"
                       }
                     }
+                  },
+                  {
+                    "name": "MGMT_USER",
+                    "value": "${MANAGEMENT_USER}"
+                  },
+                  {
+                    "name": "MGMT_PASS",
+                    "value": "${MANAGEMENT_PASSWORD}"
+                  },
+                  {
+                    "name": "APP_USER",
+                    "value": "${APPLICATION_USER}"
+                  },
+                  {
+                    "name": "APP_PASS",
+                    "value": "${APPLICATION_PASSWORD}"
                   }
                 ],
                 "image": "${IMAGE}",
@@ -327,6 +361,34 @@
       "name": "APPLICATION_NAME",
       "required": true,
       "value": "infinispan-persistent-app"
+    },
+    {
+      "description": "Username for accessing REST (and possible Hot Rod) endpoint.",
+      "name": "APPLICATION_USER",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Password for accessing REST (and possible Hot Rod) endpoint.",
+      "name": "APPLICATION_PASSWORD",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Username for accessing management console.",
+      "name": "MANAGEMENT_USER",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Password for accessing management console.",
+      "name": "MANAGEMENT_PASSWORD",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
     },
     {
       "description": "Infinispan image.",
