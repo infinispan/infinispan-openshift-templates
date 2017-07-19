@@ -71,7 +71,7 @@
         }
       },
       "data": {
-        "agent.conf": "jolokia=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,useSslClientAuthentication=true,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false"
+        "agent.conf": "jolokia=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,useSslClientAuthentication=true,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false,user=${MANAGEMENT_USER},password=${MANAGEMENT_PASSWORD}"
       }
     },
     {
@@ -84,7 +84,7 @@
         "name": "${APPLICATION_NAME}-hawkular-openshift-agent"
       },
       "data": {
-        "hawkular-openshift-agent": "endpoints:\n- type: jolokia\n  protocol: https\n  port: 8778\n  path: /jolokia/\n  collection_interval: 15s\n  tls:\n    skip_certificate_validation: true\n  metrics:\n  # int data value\n  - name: java.lang:type=Memory#ObjectPendingFinalizationCount\n    type: gauge\n    description: Object Pending Finalization Count\n  # long data value\n  - name: java.lang:type=OperatingSystem#OpenFileDescriptorCount\n    type: gauge\n    description: Open File Descriptor Count\n  # double data value\n  - name: java.lang:type=OperatingSystem#ProcessCpuLoad\n    type: gauge\n    description: Process CPU Load\n  # composite data value\n  - name: java.lang:type=Memory#HeapMemoryUsage#used\n    type: gauge\n    description: Heap Memory Used\n    units: B\n  # boolean value\n  - name: java.lang:type=Memory#Verbose\n    type: gauge\n    description: Memory Verbose Mode\n  # multiple attributes/multiple mbeans\n  - name: jboss.as:subsystem=datasources,data-source=*,statistics=jdbc#*\n    type: gauge\n"
+        "hawkular-openshift-agent": "endpoints:\n- type: jolokia\n  protocol: https\n  port: 8778\n  path: /jolokia/\n  collection_interval: 15s\n  tls:\n    skip_certificate_validation: true\n  credentials:\n    username: ${MANAGEMENT_USER}\n    password: ${MANAGEMENT_PASSWORD}\n  metrics:\n  # int data value\n  - name: java.lang:type=Memory#ObjectPendingFinalizationCount\n    type: gauge\n    description: Object Pending Finalization Count\n  # long data value\n  - name: java.lang:type=OperatingSystem#OpenFileDescriptorCount\n    type: gauge\n    description: Open File Descriptor Count\n  # double data value\n  - name: java.lang:type=OperatingSystem#ProcessCpuLoad\n    type: gauge\n    description: Process CPU Load\n  # composite data value\n  - name: java.lang:type=Memory#HeapMemoryUsage#used\n    type: gauge\n    description: Heap Memory Used\n    units: B\n  # boolean value\n  - name: java.lang:type=Memory#Verbose\n    type: gauge\n    description: Memory Verbose Mode\n  # multiple attributes/multiple mbeans\n  - name: jboss.as:subsystem=datasources,data-source=*,statistics=jdbc#*\n    type: gauge\n"
       }
     },
     {
