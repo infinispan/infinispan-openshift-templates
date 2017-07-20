@@ -28,7 +28,7 @@
       "kind": "RoleBinding",
       "apiVersion": "v1",
       "metadata": {
-        "name": "view"
+        "name": "view-${APPLICATION_NAME}"
       },
       "userNames": [
         "system:serviceaccount:myproject:${APPLICATION_NAME}"
