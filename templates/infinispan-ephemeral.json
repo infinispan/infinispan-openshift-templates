@@ -10,7 +10,7 @@
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
       "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
-      "template.openshift.io/long-description": "Infinispan is a high performance, scalable, key/value data grid solution.",
+      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) without persistence (in other words your data will be lost upon restart).",
       "template.openshift.io/provider-display-name": "Red Hat, Inc.",
       "template.openshift.io/support-url": "http://infinispan.org"
     },
@@ -45,6 +45,49 @@
       }
     },
     {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "annotations": {
+          "template.openshift.io/expose-infinispan.client.hotrod.auth_username": "{.data['application-user']}",
+          "template.openshift.io/expose-infinispan.client.hotrod.auth_password": "{.data['application-password']}"
+        }
+      },
+      "stringData" : {
+        "application-user": "${APPLICATION_USER}",
+        "application-password": "${APPLICATION_PASSWORD}",
+        "management-user": "${MANAGEMENT_USER}",
+        "management-password": "${MANAGEMENT_PASSWORD}"
+      }
+    },
+    {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}-jolokia",
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        }
+      },
+      "data": {
+        "agent.conf": "jolokia=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,useSslClientAuthentication=true,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false,user=${MANAGEMENT_USER},password=${MANAGEMENT_PASSWORD}"
+      }
+    },
+    {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "labels": {
+          "name": "${APPLICATION_NAME}-hawkular-openshift-agent"
+        },
+        "name": "${APPLICATION_NAME}-hawkular-openshift-agent"
+      },
+      "data": {
+        "hawkular-openshift-agent": "endpoints:\n- type: jolokia\n  protocol: https\n  port: 8778\n  path: /jolokia/\n  collection_interval: 15s\n  tls:\n    skip_certificate_validation: true\n  credentials:\n    username: ${MANAGEMENT_USER}\n    password: ${MANAGEMENT_PASSWORD}\n  metrics:\n  - name: java.lang:type=OperatingSystem#ProcessCpuLoad\n    type: gauge\n    description: Process CPU Load\n  - name: java.lang:type=Memory#HeapMemoryUsage#used\n    type: gauge\n    description: Heap Memory Used\n    units: B\n  - name: java.lang:type=Memory#Verbose\n    type: gauge\n    description: Memory Verbose Mode\n  - name: java.lang:type=OperatingSystem#OpenFileDescriptorCount\n    type: gauge\n    description: Open File Descriptor Count\n  - name: jboss.datagrid-infinispan:type=CacheManager,name=*,component=CacheContainerStats#*\n    type: gauge\n"
+      }
+    },
+    {
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
@@ -73,7 +116,32 @@
       "kind": "Service",
       "metadata": {
         "annotations": {
-          "description": "Hot Rod's port.."
+          "description": "The management console."
+        },
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        },
+        "name": "${APPLICATION_NAME}-management"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9990,
+            "targetPort": 9990
+          }
+        ],
+        "selector": {
+          "deploymentConfig": "${APPLICATION_NAME}"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {
+          "description": "Hot Rod's port..",
+          "template.openshift.io/expose-infinispan.client.hotrod.server_list": "{.spec.clusterIP}:{.spec.ports[0].port}"
         },
         "labels": {
           "application": "${APPLICATION_NAME}"
@@ -89,6 +157,26 @@
         ],
         "selector": {
           "deploymentConfig": "${APPLICATION_NAME}"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "id": "${APPLICATION_NAME}-management",
+      "kind": "Route",
+      "metadata": {
+        "annotations": {
+          "description": "Route for the management console."
+        },
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        },
+        "name": "${APPLICATION_NAME}-management"
+      },
+      "spec": {
+        "to": {
+          "kind": "Service",
+          "name": "${APPLICATION_NAME}-management"
         }
       }
     },
@@ -129,7 +217,9 @@
               {
                 "args": [
                   "cloud.xml",
-                  "-Djboss.default.jgroups.stack=kubernetes"
+                  "-Djboss.default.jgroups.stack=kubernetes",
+                  "--jmx",
+                  "/usr/share/jolokia/agent.conf"
                 ],
                 "env": [
                   {
@@ -143,9 +233,37 @@
                         "fieldPath": "metadata.namespace"
                       }
                     }
+                  },
+                  {
+                    "name": "KUBERNETES_LABELS",
+                    "value": "application=${APPLICATION_NAME}"
+                  },
+                  {
+                    "name": "KUBERNETES_NAMESPACE",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "name": "MGMT_USER",
+                    "value": "${MANAGEMENT_USER}"
+                  },
+                  {
+                    "name": "MGMT_PASS",
+                    "value": "${MANAGEMENT_PASSWORD}"
+                  },
+                  {
+                    "name": "APP_USER",
+                    "value": "${APPLICATION_USER}"
+                  },
+                  {
+                    "name": "APP_PASS",
+                    "value": "${APPLICATION_PASSWORD}"
                   }
                 ],
-                "image": "infinispan",
+                "image": "slaskawi/infinispan-monitoring-demo",
                 "imagePullPolicy": "Always",
                 "livenessProbe": {
                   "exec": {
@@ -179,6 +297,11 @@
                     "protocol": "TCP"
                   },
                   {
+                    "containerPort": 9990,
+                    "name": "management",
+                    "protocol": "TCP"
+                  },
+                  {
                     "containerPort": 8888,
                     "name": "ping",
                     "protocol": "TCP"
@@ -187,33 +310,39 @@
                     "containerPort": 11222,
                     "name": "hotrod",
                     "protocol": "TCP"
+                  },
+                  {
+                    "containerPort": 8778,
+                    "name": "jolokia",
+                    "protocol": "TCP"
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "${APPLICATION_NAME}-jolokia",
+                    "mountPath": "/usr/share/jolokia"
                   }
                 ]
               }
             ],
             "terminationGracePeriodSeconds": 120,
-            "serviceAccountName": "${APPLICATION_NAME}"
-          }
-        },
-        "triggers": [
-          {
-            "imageChangeParams": {
-              "automatic": true,
-              "containerNames": [
-                "${APPLICATION_NAME}"
-              ],
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "infinispan:${IMAGE_VERSION}",
-                "namespace": "${IMAGE_STREAM_NAMESPACE}"
+            "serviceAccountName": "${APPLICATION_NAME}",
+            "volumes": [
+              {
+                "name": "${APPLICATION_NAME}-jolokia",
+                "configMap": {
+                  "name": "${APPLICATION_NAME}-jolokia"
+                }
+              },
+              {
+                "name": "hawkular-openshift-agent",
+                "configMap": {
+                  "name": "${APPLICATION_NAME}-hawkular-openshift-agent"
+                }
               }
-            },
-            "type": "ImageChange"
-          },
-          {
-            "type": "ConfigChange"
+            ]
           }
-        ]
+        }
       }
     }
   ],
@@ -223,6 +352,34 @@
       "name": "APPLICATION_NAME",
       "required": true,
       "value": "infinispan-app"
+    },
+    {
+      "description": "Username for accessing REST (and possible Hot Rod) endpoint.",
+      "name": "APPLICATION_USER",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Password for accessing REST (and possible Hot Rod) endpoint.",
+      "name": "APPLICATION_PASSWORD",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Username for accessing management console.",
+      "name": "MANAGEMENT_USER",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Password for accessing management console.",
+      "name": "MANAGEMENT_PASSWORD",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
     },
     {
       "description": "Infinispan image version.",
