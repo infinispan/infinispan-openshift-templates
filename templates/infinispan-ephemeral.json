@@ -250,7 +250,7 @@
                     "value": "${APPLICATION_PASSWORD}"
                   }
                 ],
-                "image": "infinispan",
+                "image": "slaskawi/infinispan-monitoring-demo",
                 "imagePullPolicy": "Always",
                 "livenessProbe": {
                   "exec": {
@@ -329,26 +329,7 @@
               }
             ]
           }
-        },
-        "triggers": [
-          {
-            "imageChangeParams": {
-              "automatic": true,
-              "containerNames": [
-                "${APPLICATION_NAME}"
-              ],
-              "from": {
-                "kind": "ImageStreamTag",
-                "name": "infinispan:${IMAGE_VERSION}",
-                "namespace": "${IMAGE_STREAM_NAMESPACE}"
-              }
-            },
-            "type": "ImageChange"
-          },
-          {
-            "type": "ConfigChange"
-          }
-        ]
+        }
       }
     }
   ],
