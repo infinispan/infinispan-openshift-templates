@@ -235,6 +235,18 @@
                     }
                   },
                   {
+                    "name": "KUBERNETES_LABELS",
+                    "value": "application=${APPLICATION_NAME}"
+                  },
+                  {
+                    "name": "KUBERNETES_NAMESPACE",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace"
+                      }
+                    }
+                  },
+                  {
                     "name": "MGMT_USER",
                     "value": "${MANAGEMENT_USER}"
                   },
