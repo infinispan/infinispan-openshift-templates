@@ -104,6 +104,30 @@
       "kind": "Service",
       "metadata": {
         "annotations": {
+          "description": "The management console."
+        },
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        },
+        "name": "${APPLICATION_NAME}-management"
+      },
+      "spec": {
+        "ports": [
+          {
+            "port": 9990,
+            "targetPort": 9990
+          }
+        ],
+        "selector": {
+          "deploymentConfig": "${APPLICATION_NAME}"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {
           "description": "Hot Rod's port."
         },
         "labels": {
@@ -120,6 +144,26 @@
         ],
         "selector": {
           "deploymentConfig": "${APPLICATION_NAME}"
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "id": "${APPLICATION_NAME}-management",
+      "kind": "Route",
+      "metadata": {
+        "annotations": {
+          "description": "Route for the management console."
+        },
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        },
+        "name": "${APPLICATION_NAME}-management"
+      },
+      "spec": {
+        "to": {
+          "kind": "Service",
+          "name": "${APPLICATION_NAME}-management"
         }
       }
     },
@@ -238,6 +282,11 @@
                   {
                     "containerPort": 8080,
                     "name": "http",
+                    "protocol": "TCP"
+                  },
+                  {
+                    "containerPort": 9990,
+                    "name": "management",
                     "protocol": "TCP"
                   },
                   {
