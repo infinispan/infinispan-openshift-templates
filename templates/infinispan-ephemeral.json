@@ -140,7 +140,8 @@
       "kind": "Service",
       "metadata": {
         "annotations": {
-          "description": "Hot Rod's port.."
+          "description": "Hot Rod's port..",
+          "template.openshift.io/expose-infinispan.client.hotrod.server_list": "{.spec.clusterIP}:{.spec.ports[0].port}"
         },
         "labels": {
           "application": "${APPLICATION_NAME}"
