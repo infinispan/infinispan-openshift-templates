@@ -28,7 +28,7 @@
       "kind": "RoleBinding",
       "apiVersion": "v1",
       "metadata": {
-        "name": "view"
+        "name": "view-${APPLICATION_NAME}"
       },
       "userNames": [
         "system:serviceaccount:myproject:${APPLICATION_NAME}"
@@ -138,6 +138,18 @@
                   },
                   {
                     "name": "OPENSHIFT_KUBE_PING_NAMESPACE",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "name": "KUBERNETES_LABELS",
+                    "value": "application=${APPLICATION_NAME}"
+                  },
+                  {
+                    "name": "KUBERNETES_NAMESPACE",
                     "valueFrom": {
                       "fieldRef": {
                         "fieldPath": "metadata.namespace"
