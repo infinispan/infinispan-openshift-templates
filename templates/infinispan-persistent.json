@@ -147,7 +147,7 @@
       },
       "spec": {
         "serviceName": "${APPLICATION_NAME}-headless",
-        "replicas": 3,
+        "replicas": 1,
         "strategy": {
           "type": "Rolling",
           "rollingParams": {
@@ -248,7 +248,13 @@
                     "name": "${APPLICATION_NAME}-data",
                     "mountPath": "/opt/jboss/infinispan-server/standalone/data"
                   }
-                ]
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "1",
+                    "memory": "500Mi"
+                  }
+                }
               }
             ],
             "terminationGracePeriodSeconds": 120,
