@@ -102,7 +102,7 @@
         "name": "${APPLICATION_NAME}"
       },
       "spec": {
-        "replicas": 3,
+        "replicas": 1,
         "selector": {
           "deploymentConfig": "${APPLICATION_NAME}"
         },
@@ -200,7 +200,13 @@
                     "name": "hotrod",
                     "protocol": "TCP"
                   }
-                ]
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "1",
+                    "memory": "500Mi"
+                  }
+                }
               }
             ],
             "terminationGracePeriodSeconds": 120,
