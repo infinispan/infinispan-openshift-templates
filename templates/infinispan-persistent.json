@@ -10,7 +10,7 @@
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
       "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
-      "template.openshift.io/long-description": "Infinispan is a high performance, scalable, key/value data grid solution.",
+      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) with persistence enabled. In order to provide custom configuration, please update $ApplicationName-configuration ConfigMap and restart a Pod.",
       "template.openshift.io/provider-display-name": "Red Hat, Inc.",
       "template.openshift.io/support-url": "http://infinispan.org"
     },
@@ -51,6 +51,23 @@
       ],
       "roleRef": {
         "name": "view"
+      }
+    },
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "annotations": {
+          "template.openshift.io/expose-infinispan.client.hotrod.auth_username": "{.data['application-user']}",
+          "template.openshift.io/expose-infinispan.client.hotrod.auth_password": "{.data['application-password']}"
+        }
+      },
+      "stringData" : {
+        "application-user": "${APPLICATION_USER}",
+        "application-password": "${APPLICATION_PASSWORD}",
+        "management-user": "${MANAGEMENT_USER}",
+        "management-password": "${MANAGEMENT_PASSWORD}"
       }
     },
     {
@@ -137,7 +154,8 @@
       "kind": "Service",
       "metadata": {
         "annotations": {
-          "description": "Hot Rod's port."
+          "description": "Hot Rod's port.",
+          "template.openshift.io/expose-infinispan.client.hotrod.server_list": "{.spec.clusterIP}:{.spec.ports[0].port}"
         },
         "labels": {
           "application": "${APPLICATION_NAME}"
@@ -259,6 +277,22 @@
                         "fieldPath": "metadata.name"
                       }
                     }
+                  },
+                  {
+                    "name": "MGMT_USER",
+                    "value": "${MANAGEMENT_USER}"
+                  },
+                  {
+                    "name": "MGMT_PASS",
+                    "value": "${MANAGEMENT_PASSWORD}"
+                  },
+                  {
+                    "name": "APP_USER",
+                    "value": "${APPLICATION_USER}"
+                  },
+                  {
+                    "name": "APP_PASS",
+                    "value": "${APPLICATION_PASSWORD}"
                   }
                 ],
                 "image": "${IMAGE}",
@@ -376,6 +410,34 @@
       "name": "APPLICATION_NAME",
       "required": true,
       "value": "infinispan-persistent-app"
+    },
+    {
+      "description": "Username for accessing REST (and possible Hot Rod) endpoint.",
+      "name": "APPLICATION_USER",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Password for accessing REST (and possible Hot Rod) endpoint.",
+      "name": "APPLICATION_PASSWORD",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Username for accessing management console.",
+      "name": "MANAGEMENT_USER",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
+    },
+    {
+      "description": "Password for accessing management console.",
+      "name": "MANAGEMENT_PASSWORD",
+      "required": true,
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}"
     },
     {
       "description": "Infinispan image.",
