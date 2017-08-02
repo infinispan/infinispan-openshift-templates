@@ -156,7 +156,7 @@
       },
       "spec": {
         "serviceName": "${APPLICATION_NAME}-headless",
-        "replicas": 3,
+        "replicas": "${NUMBER_OF_INSTANCES}",
         "strategy": {
           "type": "Rolling",
           "rollingParams": {
@@ -269,7 +269,13 @@
                     "name": "${APPLICATION_NAME}-data",
                     "mountPath": "/opt/jboss/infinispan-server/standalone/data"
                   }
-                ]
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "0.5",
+                    "memory": "614Mi"
+                  }
+                }
               }
             ],
             "terminationGracePeriodSeconds": 120,
@@ -327,6 +333,12 @@
       "name": "IMAGE",
       "required": true,
       "value": "jboss/infinispan-server:9.1.0.Final"
+    },
+    {
+      "description": "Number of instances in the cluster.",
+      "name": "NUMBER_OF_INSTANCES",
+      "required": true,
+      "value": "1"
     }
   ]
 }
