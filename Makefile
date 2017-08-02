@@ -4,6 +4,7 @@ start-openshift-with-catalog:
 	oc adm policy add-cluster-role-to-user cluster-admin developer
 	oc login -u developer -p developer
 	oc project openshift
+	oc adm policy add-cluster-role-to-group system:openshift:templateservicebroker-client system:unauthenticated system:authenticated
 .PHONY: start-openshift-with-catalog
 
 start-openshift:
@@ -23,7 +24,6 @@ install-templates:
 	oc create -f templates/infinispan-persistent.json || true
 	oc create -f templates/infinispan-ephemeral.json || true
 	oc import-image is/infinispan || true
-	oc adm policy add-cluster-role-to-group system:openshift:templateservicebroker-client system:unauthenticated system:authenticated || true
 .PHONY: install-templates
 
 clear-templates:
