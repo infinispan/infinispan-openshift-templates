@@ -286,9 +286,6 @@
         },
         "triggers": [
           {
-            "type": "ImageChange"
-          },
-          {
             "type": "ConfigChange"
           }
         ],
@@ -323,7 +320,7 @@
       "description": "Infinispan image.",
       "name": "IMAGE",
       "required": true,
-      "value": "jboss/infinispan-server:9.0.3.Final"
+      "value": "jboss/infinispan-server:9.1.0.Final"
     }
   ]
 }
