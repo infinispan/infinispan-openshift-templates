@@ -37,10 +37,10 @@
         "labels": {
           "template": "infinispan-ephemeral"
         },
-        "name": "view-${APPLICATION_NAME}"
+        "name": "${APPLICATION_NAME}-view"
       },
       "userNames": [
-        "system:serviceaccount:myproject:${APPLICATION_NAME}"
+        "system:serviceaccount:${NAMESPACE}:${APPLICATION_NAME}"
       ],
       "groupNames": null,
       "subjects": [
@@ -251,6 +251,12 @@
     }
   ],
   "parameters": [
+    {
+      "description": "Namespace for the application. Note: The namespace is required for creating proper RoleBindings. Specifying wrong namespace will prevent cluster from forming.",
+      "name": "NAMESPACE",
+      "required": true,
+      "value": "myproject"
+    },
     {
       "description": "The name for the application.",
       "name": "APPLICATION_NAME",
