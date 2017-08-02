@@ -6,8 +6,9 @@ install-templates:
 .PHONY: install-templates
 
 clear-templates:
-	oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles --selector=template=infinispan-ephemeral
-	oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles --selector=template=infinispan-persistent
+	oc delete is infinispan || true
+	oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles,rolebindings,serviceaccounts --selector=template=infinispan-ephemeral || true
+	oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles,rolebindings,serviceaccounts --selector=template=infinispan-persistent || true
 .PHONY: clear-templates
 
 update-templates:

@@ -14,6 +14,9 @@
       "template.openshift.io/provider-display-name": "Red Hat, Inc.",
       "template.openshift.io/support-url": "http://infinispan.org"
     },
+    "labels": {
+      "template": "infinispan-ephemeral"
+    },
     "name": "infinispan-ephemeral"
   },
   "objects": [
@@ -21,6 +24,9 @@
       "kind": "ServiceAccount",
       "apiVersion": "v1",
       "metadata": {
+        "labels": {
+          "template": "infinispan-ephemeral"
+        },
         "name": "${APPLICATION_NAME}"
       }
     },
@@ -28,6 +34,9 @@
       "kind": "RoleBinding",
       "apiVersion": "v1",
       "metadata": {
+        "labels": {
+          "template": "infinispan-ephemeral"
+        },
         "name": "view-${APPLICATION_NAME}"
       },
       "userNames": [
