@@ -356,7 +356,7 @@
                 "resources": {
                   "requests": {
                     "cpu": "0.5",
-                    "memory": "614Mi"
+                    "memory": "512Mi"
                   }
                 }
               }
@@ -389,7 +389,7 @@
               ],
               "resources": {
                 "requests": {
-                  "storage": "20Gi"
+                  "storage": "1Gi"
                 }
               }
             }
