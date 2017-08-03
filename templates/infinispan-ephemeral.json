@@ -384,7 +384,7 @@
       "description": "Infinispan image.",
       "name": "IMAGE",
       "required": true,
-      "value": "jboss/infinispan-server:9.1.0.Final"
+      "value": "jboss/infinispan-server:9.1.0.Final-1"
     },
     {
       "description": "Number of instances in the cluster.",
