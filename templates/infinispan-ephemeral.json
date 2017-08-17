@@ -10,12 +10,9 @@
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
       "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
-      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) without persistence (in other words your data will be lost upon restart). In order to provide custom configuration, please update $ApplicationName-configuration ConfigMap and restart a Pod.",
+      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) without persistence (in other words your data will be lost upon restart). In order to provide custom configuration, please update the $ApplicationName-configuration ConfigMap and restart a Pod.",
       "template.openshift.io/provider-display-name": "Red Hat, Inc.",
       "template.openshift.io/support-url": "http://infinispan.org"
-    },
-    "labels": {
-      "template": "infinispan-ephemeral"
     },
     "name": "infinispan-ephemeral"
   },
@@ -24,19 +21,13 @@
       "kind": "ServiceAccount",
       "apiVersion": "v1",
       "metadata": {
-       "labels": {
-          "template": "infinispan-ephemeral"
-        },
-        "name": "${APPLICATION_NAME}"
+      "name": "${APPLICATION_NAME}"
       }
     },
     {
       "kind": "RoleBinding",
       "apiVersion": "v1",
       "metadata": {
-        "labels": {
-          "template": "infinispan-ephemeral"
-        },
         "name": "${APPLICATION_NAME}-view"
       },
       "userNames": [
@@ -186,7 +177,7 @@
         "name": "${APPLICATION_NAME}"
       },
       "spec": {
-        "replicas": "${NUMBER_OF_INSTANCES}",
+        "replicas": "${{NUMBER_OF_INSTANCES}}",
         "selector": {
           "deploymentConfig": "${APPLICATION_NAME}"
         },
