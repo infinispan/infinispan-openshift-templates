@@ -23,7 +23,6 @@ install-templates:
 	oc create -f imagestreams/infinispan-centos7.json || true
 	oc create -f templates/infinispan-persistent.json || true
 	oc create -f templates/infinispan-ephemeral.json || true
-	oc import-image is/infinispan || true
 .PHONY: install-templates
 
 clear-templates:
@@ -36,7 +35,6 @@ update-templates:
 	oc replace -f imagestreams/infinispan-centos7.json
 	oc replace -f templates/infinispan-persistent.json
 	oc replace -f templates/infinispan-ephemeral.json
-	oc import-image is/infinispan || true
 .PHONY: update-templates
 
 test-persistent:
