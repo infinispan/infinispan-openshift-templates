@@ -40,11 +40,11 @@ update-templates:
 .PHONY: update-templates
 
 test-persistent:
-	oc process infinispan-persistent | oc create -f -
+	oc process infinispan-persistent -p NAMESPACE=$(shell oc project -q) | oc create -f -
 .PHONY: test-persistent
 
 test-ephemeral:
-	oc process infinispan-ephemeral | oc create -f -
+	oc process infinispan-ephemeral -p NAMESPACE=$(shell oc project -q) | oc create -f -
 .PHONY: test-ephemeral
 
 export-configuration-for-persistent-template:
