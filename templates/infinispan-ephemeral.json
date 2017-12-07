@@ -9,10 +9,11 @@
       "description": "Infinispan 9 (Ephemeral)",
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
-      "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
-      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) without persistence (in other words your data will be lost upon restart). In order to provide custom configuration, please update the $ApplicationName-configuration ConfigMap and restart a Pod.",
-      "template.openshift.io/provider-display-name": "Red Hat, Inc.",
-      "template.openshift.io/support-url": "http://infinispan.org"
+      "openshift.io/display-name": "Infinispan 9 (Ephemeral)",
+      "openshift.io/documentation-url": "http://infinispan.org/documentation/",
+      "openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) without persistence (in other words your data will be lost upon restart). In order to provide custom configuration, please update the $ApplicationName-configuration ConfigMap and restart a Pod.",
+      "openshift.io/provider-display-name": "Red Hat, Inc.",
+      "openshift.io/support-url": "http://infinispan.org"
     },
     "name": "infinispan-ephemeral"
   },
@@ -61,6 +62,37 @@
         "management-password": "${MANAGEMENT_PASSWORD}"
       }
     },
+    {
+         "apiVersion": "v1",
+         "kind": "Service",
+         "metadata": {
+            "annotations": {
+               "description": "Headless service for StatefulSets"
+            },
+            "labels": {
+               "application": "${APPLICATION_NAME}"
+            },
+            "name": "${APPLICATION_NAME}-headless"
+         },
+         "spec": {
+            "ports": [
+               {
+                  "name": "http",
+                  "port": 8080,
+                  "targetPort": 8080
+               },
+               {
+                  "name": "hotrod",
+                  "port": 11222,
+                  "targetPort": 11222
+               }
+            ],
+            "selector": {
+               "application": "${APPLICATION_NAME}"
+            },
+            "clusterIP": "None"
+         }
+      },
     {
       "apiVersion": "v1",
       "kind": "Service",
@@ -168,8 +200,8 @@
       }
     },
     {
-      "apiVersion": "v1",
-      "kind": "DeploymentConfig",
+      "apiVersion": "apps/v1beta1",
+      "kind": "StatefulSet",
       "metadata": {
         "labels": {
           "application": "${APPLICATION_NAME}"
@@ -177,10 +209,8 @@
         "name": "${APPLICATION_NAME}"
       },
       "spec": {
+        "serviceName": "${APPLICATION_NAME}-headless",
         "replicas": "${{NUMBER_OF_INSTANCES}}",
-        "selector": {
-          "deploymentConfig": "${APPLICATION_NAME}"
-        },
         "strategy": {
           "type": "Rolling",
           "rollingParams": {

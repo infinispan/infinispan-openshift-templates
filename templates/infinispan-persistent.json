@@ -9,10 +9,11 @@
       "description": "Infinispan 9 (Persistent)",
       "iconClass": "icon-infinispan",
       "tags": "java,database,datagrid,jboss",
-      "template.openshift.io/documentation-url": "http://infinispan.org/documentation/",
-      "template.openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) with persistence enabled. In order to provide custom configuration, please update the $ApplicationName-configuration ConfigMap and restart a Pod.",
-      "template.openshift.io/provider-display-name": "Red Hat, Inc.",
-      "template.openshift.io/support-url": "http://infinispan.org"
+      "openshift.io/display-name": "Infinispan 9 (Persistent)",
+      "openshift.io/documentation-url": "http://infinispan.org/documentation/",
+      "openshift.io/long-description": "This template provides a standalone Infinispan server (a high performance, scalable, key/value data grid solution) with persistence enabled. In order to provide custom configuration, please update the $ApplicationName-configuration ConfigMap and restart a Pod.",
+      "openshift.io/provider-display-name": "Red Hat, Inc.",
+      "openshift.io/support-url": "http://infinispan.org"
     },
     "name": "infinispan-persistent"
   },
@@ -87,7 +88,7 @@
           }
         ],
         "selector": {
-          "deploymentConfig": "${APPLICATION_NAME}"
+          "application": "${APPLICATION_NAME}"
         },
         "clusterIP": "None"
       }
