@@ -200,6 +200,19 @@
       }
     },
     {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}-jolokia",
+        "labels": {
+          "application": "${APPLICATION_NAME}"
+        }
+      },
+      "data": {
+        "agent.conf": "jolokia=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,useSslClientAuthentication=true,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false"
+      }
+    },
+    {
       "apiVersion": "apps/v1beta1",
       "kind": "StatefulSet",
       "metadata": {
@@ -234,7 +247,9 @@
               {
                 "args": [
                   "custom/cloud-ephemeral.xml",
-                  "-Djboss.default.jgroups.stack=kubernetes"
+                  "-Djboss.default.jgroups.stack=kubernetes",
+                  "--jmx",
+                  "/usr/share/jolokia/agent.conf"
                 ],
                 "env": [
                   {
@@ -344,12 +359,21 @@
                     "containerPort": 11222,
                     "name": "hotrod",
                     "protocol": "TCP"
+                  },
+                  {
+                    "containerPort": 8778,
+                    "name": "jolokia",
+                    "protocol": "TCP"
                   }
                 ],
                 "volumeMounts": [
                   {
                     "name": "${APPLICATION_NAME}-configuration",
                     "mountPath": "/opt/jboss/infinispan-server/standalone/configuration/custom"
+                  },
+                  {
+                    "name": "${APPLICATION_NAME}-jolokia",
+                    "mountPath": "/usr/share/jolokia"
                   }
                 ],
                 "resources": {
@@ -367,6 +391,12 @@
                 "name": "${APPLICATION_NAME}-configuration",
                 "configMap": {
                   "name": "${APPLICATION_NAME}-configuration"
+                }
+              },
+              {
+                "name": "${APPLICATION_NAME}-jolokia",
+                "configMap": {
+                  "name": "${APPLICATION_NAME}-jolokia"
                 }
               }
             ]
