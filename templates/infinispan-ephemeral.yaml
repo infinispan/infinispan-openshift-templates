@@ -846,7 +846,7 @@ parameters:
 - description: Infinispan image.
   name: IMAGE
   required: true
-  value: jboss/infinispan-server:9.2.0.Final
+  value: jboss/infinispan-server:9.4.1.Final
 - description: Number of instances in the cluster.
   name: NUMBER_OF_INSTANCES
   required: true
