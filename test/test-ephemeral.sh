@@ -9,7 +9,7 @@ oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles,rolebindin
 oc delete template infinispan-ephemeral || true
 
 
-oc create -f templates/infinispan-ephemeral.json
+oc create -f templates/infinispan-ephemeral.yaml
 
 
 oc new-app infinispan-ephemeral \
