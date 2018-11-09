@@ -47,16 +47,16 @@ getRouteHost() {
   oc get route/infinispan-app-http -o jsonpath="{.spec.host}"
 }
 
-# Store via HTTP REST
+printf "\n--> Store a key/value pair\n"
 curl -v \
   -u $TEST_USER:$TEST_PASSWORD \
-  -X POST \
   -H 'Content-type: text/plain' \
   -d 'test' \
   $(getRouteHost)/rest/default/stuff
 
 
-# Retrive via HTTP REST
+printf "\n--> Retrieve key\n"
 curl -v \
   -u $TEST_USER:$TEST_PASSWORD \
+  -w "\n" \
   $(getRouteHost)/rest/default/stuff
