@@ -435,10 +435,7 @@ objects:
                           </string-keyed-jdbc-store>
                       </distributed-cache-configuration>
                       <distributed-cache name="default">
-                          <!--
-                          <rocksdb-store shared="false" fetch-state="true" passivation="false" preload="true" path="${jboss.server.base.dir}/persistent/data"/>
-                          -->
-                          <file-store shared="false" fetch-state="true" relative-to="jboss.server.base.dir" path="persistent/data"/>
+                          <rocksdb-store shared="false" fetch-state="true" passivation="false" preload="true" />
                       </distributed-cache>
                       <replicated-cache name="repl" configuration="replicated"/>
                   </cache-container>
@@ -813,7 +810,7 @@ objects:
           volumeMounts:
           - mountPath: /opt/jboss/infinispan-server/standalone/configuration/custom
             name: ${APPLICATION_NAME}-configuration
-          - mountPath: /opt/jboss/infinispan-server/standalone/persistent/data
+          - mountPath: /opt/jboss/infinispan-server/standalone/data
             name: ${APPLICATION_NAME}-data
         serviceAccountName: ${APPLICATION_NAME}
         terminationGracePeriodSeconds: 120
