@@ -1,8 +1,8 @@
 _TEST_PROJECT = myproject
 
 install-templates:
-	oc create -f templates/infinispan-persistent.yaml
-	oc create -f templates/infinispan-ephemeral.yaml
+	oc create -f infinispan-persistent.yaml
+	oc create -f infinispan-ephemeral.yaml
 .PHONY: install-templates
 
 clear-templates:
@@ -13,6 +13,6 @@ clear-templates:
 .PHONY: clear-templates
 
 update-templates:
-	oc replace -f templates/infinispan-persistent.yaml
-	oc replace -f templates/infinispan-ephemeral.yaml
+	oc replace -f infinispan-persistent.yaml
+	oc replace -f infinispan-ephemeral.yaml
 .PHONY: update-templates

@@ -9,7 +9,7 @@ oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles,rolebindin
 oc delete template infinispan-persistent || true
 
 
-oc create -f templates/infinispan-persistent.yaml
+oc create -f infinispan-persistent.yaml
 
 
 oc new-app infinispan-persistent \
