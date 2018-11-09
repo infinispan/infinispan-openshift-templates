@@ -147,7 +147,7 @@ oc expose svc/infinispan-persistent-app-http
 Next, store some data:
 
 ```
-export ROUTE=`oc get route/infinispan-app-http -o jsonpath="{.spec.host}"`
+export ROUTE=`oc get route/infinispan-persistent-app-http -o jsonpath="{.spec.host}"`
 
 curl -v \
   -u test:changeme \
