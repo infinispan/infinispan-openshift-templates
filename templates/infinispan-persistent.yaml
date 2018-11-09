@@ -435,7 +435,10 @@ objects:
                           </string-keyed-jdbc-store>
                       </distributed-cache-configuration>
                       <distributed-cache name="default">
-                          <rocksdb-store shared="false" fetch-state="true" passivation="false" preload="true" />
+                          <!--
+                          <rocksdb-store shared="false" fetch-state="true" passivation="false" preload="true" path="${jboss.server.base.dir}/persistent/data"/>
+                          -->
+                          <file-store shared="false" fetch-state="true" relative-to="jboss.server.base.dir" path="persistent/data"/>
                       </distributed-cache>
                       <replicated-cache name="repl" configuration="replicated"/>
                   </cache-container>
@@ -800,8 +803,8 @@ objects:
               - /usr/local/bin/is_healthy.sh
             failureThreshold: 5
             initialDelaySeconds: 10
-            periodSeconds: 60
-            successThreshold: 2
+            periodSeconds: 10
+            successThreshold: 1
             timeoutSeconds: 80
           resources:
             requests:
@@ -810,7 +813,7 @@ objects:
           volumeMounts:
           - mountPath: /opt/jboss/infinispan-server/standalone/configuration/custom
             name: ${APPLICATION_NAME}-configuration
-          - mountPath: /opt/jboss/infinispan-server/standalone/data
+          - mountPath: /opt/jboss/infinispan-server/standalone/persistent/data
             name: ${APPLICATION_NAME}-data
         serviceAccountName: ${APPLICATION_NAME}
         terminationGracePeriodSeconds: 120
@@ -863,7 +866,7 @@ parameters:
 - description: Infinispan image.
   name: IMAGE
   required: true
-  value: jboss/infinispan-server:9.2.0.Final
+  value: jboss/infinispan-server:9.4.1.Final
 - description: Number of instances in the cluster.
   name: NUMBER_OF_INSTANCES
   required: true
