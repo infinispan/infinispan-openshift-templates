@@ -114,7 +114,7 @@ objects:
     cloud-ephemeral.xml: |
       <?xml version='1.0' encoding='UTF-8'?>
 
-      <server xmlns="urn:jboss:domain:5.0">
+      <server xmlns="urn:jboss:domain:8.0">
           <extensions>
               <extension module="org.infinispan.extension"/>
               <extension module="org.infinispan.server.endpoint"/>
@@ -280,7 +280,7 @@ objects:
                       </drivers>
                   </datasources>
               </subsystem>
-              <subsystem xmlns="urn:wildfly:elytron:1.2" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
+              <subsystem xmlns="urn:wildfly:elytron:4.0" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
                   <providers>
                       <aggregate-providers name="combined-providers">
                           <providers name="elytron"/>
@@ -317,9 +317,11 @@ objects:
                       <simple-permission-mapper name="default-permission-mapper" mapping-mode="first">
                           <permission-mapping>
                               <principal name="anonymous"/>
+                              <permission-set name="default-permissions"/>
                           </permission-mapping>
                           <permission-mapping match-all="true">
-                              <permission class-name="org.wildfly.security.auth.permission.LoginPermission"/>
+                              <permission-set name="login-permission"/>
+                              <permission-set name="default-permissions"/>
                           </permission-mapping>
                       </simple-permission-mapper>
                       <constant-realm-mapper name="local" realm-name="local"/>
@@ -328,38 +330,36 @@ objects:
                           <role name="SuperUser"/>
                       </constant-role-mapper>
                   </mappers>
+                  <permission-sets>
+                      <permission-set name="login-permission">
+                          <permission class-name="org.wildfly.security.auth.permission.LoginPermission"/>
+                      </permission-set>
+                      <permission-set name="default-permissions"/>
+                  </permission-sets>
                   <http>
-                      <http-authentication-factory name="management-http-authentication" http-server-mechanism-factory="global" security-domain="ManagementDomain">
+                      <http-authentication-factory name="management-http-authentication" security-domain="ManagementDomain" http-server-mechanism-factory="global">
                           <mechanism-configuration>
                               <mechanism mechanism-name="DIGEST">
                                   <mechanism-realm realm-name="ManagementRealm"/>
                               </mechanism>
                           </mechanism-configuration>
                       </http-authentication-factory>
-                      <http-authentication-factory name="application-http-authentication" http-server-mechanism-factory="global" security-domain="ApplicationDomain">
-                          <mechanism-configuration>
-                              <mechanism mechanism-name="BASIC">
-                                  <mechanism-realm realm-name="Application Realm"/>
-                              </mechanism>
-                              <mechanism mechanism-name="FORM"/>
-                          </mechanism-configuration>
-                      </http-authentication-factory>
                       <provider-http-server-mechanism-factory name="global"/>
                   </http>
                   <sasl>
-                      <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
-                          <mechanism-configuration>
-                              <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local"/>
-                              <mechanism mechanism-name="DIGEST-MD5">
-                                  <mechanism-realm realm-name="ManagementRealm"/>
-                              </mechanism>
-                          </mechanism-configuration>
-                      </sasl-authentication-factory>
                       <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain">
                           <mechanism-configuration>
                               <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local"/>
                               <mechanism mechanism-name="DIGEST-MD5">
                                   <mechanism-realm realm-name="ApplicationRealm"/>
+                              </mechanism>
+                          </mechanism-configuration>
+                      </sasl-authentication-factory>
+                      <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
+                          <mechanism-configuration>
+                              <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local"/>
+                              <mechanism mechanism-name="DIGEST-MD5">
+                                  <mechanism-realm realm-name="ManagementRealm"/>
                               </mechanism>
                           </mechanism-configuration>
                       </sasl-authentication-factory>
@@ -376,7 +376,7 @@ objects:
                       <provider-sasl-server-factory name="global"/>
                   </sasl>
               </subsystem>
-              <subsystem xmlns="urn:infinispan:server:core:9.2" default-cache-container="clustered">
+              <subsystem xmlns="urn:infinispan:server:core:9.4" default-cache-container="clustered">
                   <cache-container name="clustered" default-cache="default" statistics="true">
                       <transport lock-timeout="60000"/>
                       <global-state/>
@@ -426,7 +426,7 @@ objects:
                       <replicated-cache name="repl" configuration="replicated"/>
                   </cache-container>
               </subsystem>
-              <subsystem xmlns="urn:infinispan:server:endpoint:9.2">
+              <subsystem xmlns="urn:infinispan:server:endpoint:9.4">
                   <hotrod-connector socket-binding="hotrod" cache-container="clustered">
                       <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
                   </hotrod-connector>
@@ -434,7 +434,7 @@ objects:
                       <authentication security-realm="ApplicationRealm" auth-method="BASIC"/>
                   </rest-connector>
               </subsystem>
-              <subsystem xmlns="urn:infinispan:server:jgroups:9.2">
+              <subsystem xmlns="urn:infinispan:server:jgroups:9.4">
                   <channels default="cluster">
                       <channel name="cluster"/>
                   </channels>
@@ -573,8 +573,8 @@ objects:
                       </stack>
                   </stacks>
               </subsystem>
-              <subsystem xmlns="urn:jboss:domain:io:2.0">
-                  <worker name="default"/>
+              <subsystem xmlns="urn:jboss:domain:io:3.0">
+                  <worker name="default" io-threads="2" task-max-threads="2"/>
                   <buffer-pool name="default"/>
               </subsystem>
               <subsystem xmlns="urn:jboss:domain:jca:5.0">
@@ -606,7 +606,6 @@ objects:
                   <remote-naming/>
               </subsystem>
               <subsystem xmlns="urn:jboss:domain:remoting:4.0">
-                  <endpoint/>
                   <http-connector name="http-remoting-connector" connector-ref="default" security-realm="ApplicationRealm"/>
               </subsystem>
               <subsystem xmlns="urn:jboss:domain:security:2.0">
@@ -626,11 +625,6 @@ objects:
                               <policy-module code="Delegating" flag="required"/>
                           </authorization>
                       </security-domain>
-                      <security-domain name="jboss-ejb-policy" cache-type="default">
-                          <authorization>
-                              <policy-module code="Delegating" flag="required"/>
-                          </authorization>
-                      </security-domain>
                       <security-domain name="jaspitest" cache-type="default">
                           <authentication-jaspi>
                               <login-module-stack name="dummy">
@@ -639,10 +633,15 @@ objects:
                               <auth-module code="Dummy"/>
                           </authentication-jaspi>
                       </security-domain>
+                      <security-domain name="jboss-ejb-policy" cache-type="default">
+                          <authorization>
+                              <policy-module code="Delegating" flag="required"/>
+                          </authorization>
+                      </security-domain>
                   </security-domains>
               </subsystem>
-              <subsystem xmlns="urn:jboss:domain:transactions:4.0">
-                  <core-environment>
+              <subsystem xmlns="urn:jboss:domain:transactions:5.0">
+                  <core-environment node-identifier="${jboss.tx.node.id:1}">
                       <process-id>
                           <uuid/>
                       </process-id>
@@ -676,7 +675,6 @@ objects:
               <socket-binding name="rest-ssl" port="8443"/>
               <socket-binding name="txn-recovery-environment" port="4712"/>
               <socket-binding name="txn-status-manager" port="4713"/>
-              <socket-binding name="websocket" port="8181"/>
               <outbound-socket-binding name="remote-store-hotrod-server">
                   <remote-destination host="remote-host" port="11222"/>
               </outbound-socket-binding>
