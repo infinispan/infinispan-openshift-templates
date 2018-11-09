@@ -16,6 +16,8 @@ metadata:
     openshift.io/provider-display-name: Red Hat, Inc.
     openshift.io/support-url: http://infinispan.org
     tags: java,database,datagrid,jboss
+  labels:
+    template: infinispan-ephemeral
   creationTimestamp: null
   name: infinispan-ephemeral
 objects:
