@@ -212,10 +212,6 @@ These can be removed by calling:
 oc delete pvc -l application=infinispan-persistent-app
 ```
 
-=== Makefile
-
-A small `Makefile` is provided in the repository for managing templates and instances created by these templates.
-
 === Testing
 
 `test-ephemeral.sh` and `test-persistent.sh` smoke test scripts are provided to quickly verify each template works as expected.
