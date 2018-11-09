@@ -6,7 +6,6 @@ TEST_USER=test
 TEST_PASSWORD=test
 
 oc delete all,secrets,sa,templates,configmaps,daemonsets,clusterroles,rolebindings,serviceaccounts --selector=template=infinispan-persistent || true
-oc delete template infinispan-persistent || true
 
 
 oc create -f infinispan-persistent.yaml
