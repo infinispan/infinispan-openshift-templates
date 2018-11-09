@@ -1,99 +1,221 @@
-Infinispan OpenShift Templates
-==============================
+= Infinispan OpenShift Templates
 
 This repository contains OpenShift templates for Infinispan.
-The templates are in sync with [OpenShift Library](https://github.com/openshift/library).
+The templates are in sync with https://github.com/openshift/library[OpenShift Library].
 
-What's inside?
---------------
+This templates are designed for running on top of OpenShift Container Platform.
+For quick local testing, Minishift offers an easy way for running things locally.
+This README file concentrates on showing how to run the templates on top of Minishift.
 
-The repository has the following structure
 
-.Directory structure
-```
-+- Root
-    +- configurations - Configuration files for persistent image
-    +- imagestreams - Image Streams for Infinispan 8 and 9
-    +- templates - Infinispan ephemeral and persistent template
-```
+== Minishift
 
-Infinispan ephemeral template creates a cluster of 3 nodes without any persistence. This template shall be used
-for creating ad-hoc applications or when persistence is not the case.
+Firstly, install https://github.com/minishift/minishift/releases[Minishift].
 
-Infinispan persistent templates creates a cluster of 3 nodes based on [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/).
-All data is stored inside `/opt/jboss/infinispan-server/standalone/data` directory which is persistent. This allows you to scale down/up
-the cluster without losing data. Here's a simple example:
+Once installed Minishift, you should create a profile before starting Minishift.
+Profiles allow you to create and manage these isolated instances of Minishift.
+Here's an example configuration with enough resources to run multiple applications and multiple Infinispan pods:
 
 ```
-# Create an app
-make test-persistent
+minishift profile set infinispan-openshift-test
+minishift config set cpus 4
+minishift config set memory 8192
+minishift config set disk-size 50g
+```
 
-# Put something into the cluster
-curl -v -u user:changeme -d test -H "Accept: text/plain" http://172.17.0.2:8080/rest/default/2\
+On top of this Minishift configuration, depending on your environment you'll need to set the correct `vm-driver`.
+One option is to use `xhyve`, which is set like this:
 
-# Scale it down and up again
+```
+minishift config set vm-driver xhyve
+```
+
+For ease of use, it's also recommended to enable the following two addons:
+
+```
+minishift addons enable admin-user
+minishift addons enable anyuid
+```
+
+Finally, start Minishift and add OpenShift client libraries to path:
+
+```
+minishift start
+eval $(minishift oc-env)
+```
+
+
+== Templates
+
+In this section you will learn about the OpenShift templates offered in this repository.
+You will also find out how to install and use them.
+
+All templates expose Infinispan's configuration via a `ConfigMap` element.
+This makes it easy for the user to modify the XML directly in the template and re-install the template.
+Note that the `ConfigMap` can also be modified at runtime using the OpenShift console.
+
+
+=== Ephemeral Template
+
+This template demonstrates an Infinispan deployment that exclusively uses in-memory storage.
+
+You can install the template by calling:
+
+```
+oc create -f infinispan-ephemeral.yaml
+```
+
+Next, instantiate the template to start an Infinispan Server cluster:
+
+```
+oc new-app infinispan-ephemeral \
+  -p APPLICATION_USER=test \
+  -p APPLICATION_PASSWORD=changeme \
+  -p NUMBER_OF_INSTANCES=3
+```
+
+Once all pods are ready, let's run a test to store and retrieve some data via the HTTP REST endpoint.
+Since the test is executed from outside OpenShift, you should first expose the HTTP REST endpoint as a route:
+
+```
+oc expose svc/infinispan-app-http
+```
+
+Next, store some data:
+
+```
+export ROUTE=`oc get route/infinispan-app-http -o jsonpath="{.spec.host}"`
+
+curl -v \
+  -u test:changeme \
+  -H 'Content-type: text/plain' \
+  -d 'test' \
+  $ROUTE/rest/default/stuff
+```
+
+Then, retrieve and you should get the value stored:
+
+```
+curl -v \
+  -u test:changeme \
+  $ROUTE/rest/default/stuff
+```
+
+
+=== Persistent Template
+
+This template demonstrates an Infinispan deployment where in-memory data is backed up by filesystem-based persistence.
+The template is very similar to the ephemeral one with a couple of exceptions:
+
+* The default cache is configured with local `rocksdb` file-based persistence.
+* The file path where data is persisted is backed by a `PersistenVolume`.
+This means that data persisted in the `PersistentVolume` survives an Infinispan cluster restart.
+
+You can install the template by calling:
+
+```
+oc create -f infinispan-persistent.yaml
+```
+
+Before instantiating the template, you should make sure the persistent volumes will be writable by Infinispan Server.
+In Minishift, the directories that back persistent volumes are privileged and protected and owned by the root user.
+For ease of development on Minishift, you can relax the directory and permissions ownership for persistent volumes:
+
+```
+minishift ssh
+sudo chmod -R a+w /var/lib/minishift/base/openshift.local.pv/pv*
+sudo chmod -R 777 /var/lib/minishift/base/openshift.local.pv/pv*
+```
+
+Next, instantiate the template to start an Infinispan Server cluster:
+
+```
+oc new-app infinispan-persistent \
+  -p APPLICATION_USER=test \
+  -p APPLICATION_PASSWORD=changeme \
+  -p NUMBER_OF_INSTANCES=3
+```
+
+Once all pods are ready, let's run a test to verify persisted data survives complete restarts.
+
+Since the test is executed from outside OpenShift, you should first expose the HTTP REST endpoint as a route:
+
+```
+oc expose svc/infinispan-persistent-app-http
+```
+
+Next, store some data:
+
+```
+export ROUTE=`oc get route/infinispan-app-http -o jsonpath="{.spec.host}"`
+
+curl -v \
+  -u test:changeme \
+  -H 'Content-type: text/plain' \
+  -d 'test' \
+  $ROUTE/rest/default/stuff
+```
+
+To verify that data is accessible after a complete restart, scale down the Infinispan Server cluster to 0 instances:
+
+```
 oc scale statefulset infinispan-persistent-app --replicas=0
+```
+
+Then, scale it back up to 3 instances:
+
+```
 oc scale statefulset infinispan-persistent-app --replicas=3
+```
 
-# It's still there!
-curl -v -u user:changeme -H "Accept: text/plain" http://172.17.0.2:8080/rest/default/2\
+Once all pods are ready, you should be able to retrieve the via:
+
+```
+curl -v \
+  -u test:changeme \
+  $ROUTE/rest/default/stuff
 ```
 
 
-How to install templates?
--------------------------
+== Extras
 
-Both Templates and Image Streams need to be installed in OpenShift. If you'd like to make them accessible for all users
-(regardless to the Project/Namespace), you need to switch to Project `openshift` before proceeding.
+This section contains extra information related to these templates.
 
-The easiest way to install the templates is to use Make:
 
-.Installing templates using Make
+=== Maintenance
+
+You might decide to make some changes to the template.
+Once you've made the changes, you can replace the template by calling:
+
 ```
-make install-templates
-```
-
-Alternatively you can use `oc` client:
-
-.Installing templates using `oc` client
-```
-oc create -f imagestreams/infinispan-centos7.json
-oc create -f templates/infinispan-persistent.json
-oc create -f templates/infinispan-ephemeral.json
+oc replace -f infinispan-ephemeral.yaml
 ```
 
-After all templates are installed you can create a new application by using either `oc process` command or
-OpenShift web console. For more information please refer to [OpenShift templates manual](https://docs.openshift.org/latest/dev_guide/templates.html).
+Also, you can remove the template:
 
-How to run applications based on templates?
--------------------------------------------
-
-The easiest way to get Infinispan cluster running is to use make:
-
-.Running templates using Make
 ```
-make test-ephemeral
-make test-persistent
+oc delete template infinispan-ephemeral
 ```
 
-Alternatively you can use `oc` command:
+Infinipan Server instances created by a specific template can be removed by calling:
 
-.Running templates using `oc` command
 ```
-oc process infinispan-persistent | oc create -f -
-oc process infinispan-ephemeral | oc create -f -
+oc delete all,secrets,sa,configmaps,daemonsets,clusterroles,rolebindings,serviceaccounts --selector=template=infinispan-ephemeral || true
 ```
 
-Maintenance guide
------------------
+You can also remove individual Infinispan Server clusters by using a `--selector` parameter that matches the cluster's application name.
 
-We haven't figured out what's the best way to store configuration. Currently we use ConfigMap for this.
+Note that any persistent volumes attached are not removed by default.
+These can be removed by calling:
 
-The procedure for updating configuration looks like the following:
+```
+oc delete pvc -l application=infinispan-persistent-app
+```
 
-1. Update `configurations/cloud-persistent.xml` file
-2. Run `make export-configuration-for-template`
-3. Copy `"cloud-persistent.xml": "\u003c?xml ve....`
-4. Update the template
+=== Makefile
 
-If you have better ideas how we could do that, please open us an issue or even better, donate us with a Pull Request!
+A small `Makefile` is provided in the repository for managing templates and instances created by these templates.
+
+=== Testing
+
+`test-ephemeral.sh` and `test-persistent.sh` smoke test scripts are provided to quickly verify each template works as expected.
