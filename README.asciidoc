@@ -7,6 +7,7 @@ This templates are designed for running on top of OpenShift Container Platform.
 For quick local testing, Minishift offers an easy way for running things locally.
 This README file concentrates on showing how to run the templates on top of Minishift.
 
+> DEPRECATED: These templates are no longer the recommended way to utilise Infinispan on Kubernetes/Openshift. Instead we recommend that future deployments make use of the https://github.com/infinispan/infinispan-operator[Infinispan Operator]
 
 == Minishift
 
